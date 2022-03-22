@@ -8,6 +8,7 @@
 build
 intermediate
 Main.c
+Main.cpp
 
 
 # Compiled Object files
