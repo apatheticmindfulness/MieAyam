@@ -1,7 +1,7 @@
 #pragma once
 #include <stdint.h>
 
-typedef struct MAY_Color
+typedef struct
 {
 	uint8_t blue;
 	uint8_t green;
