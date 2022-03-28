@@ -15,20 +15,27 @@ typedef struct
 	int32_t				x;
 	int32_t				y;
 	mieayam_mouse_state state;
-} mieayam_mouse;
+} mieayam_mouse_internal;
 
 typedef struct
 {
-	HWND				handles[WINDOW_COUNT];
-	mieayam_mouse		mouses[MOUSE_COUNT];
+	int32_t index;
+	HWND handle;
+} mieayam_window_internal;
+
+typedef struct
+{
+	mieayam_window_internal			window[MAX_WINDOW_COUNT];
+	mieayam_mouse_internal			mouses[MAX_WINDOW_COUNT];
 } mieayam_window_handles;
 
 
-static uint32_t							_mieayam_window_count;
-static uint32_t							_mieayam_current_active;
-static WNDCLASSEX						_mieayam_window_class;
-static mieayam_window_handles			_mieayam_window_handle;
-static mieayam_mouse					_mieayam_mouse;
+static uint32_t							_mieayam_window_count;				// Store how many windows are
+static uint32_t							_mieayam_window_track_window_count; // Track current the count of the windows
+static int32_t							_mieayam_current_active_id;			// Store current active window id
+static int32_t							_mieayam_current_active_index;		// Store current active window index from an array
+static WNDCLASSEX						_mieayam_window_class;				// Store window main class
+static mieayam_window_handles			_mieayam_window_handle;				// Store all the window handles				
 
 
 static LRESULT CALLBACK					_mieayam_Win32HandleProcess(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
@@ -50,9 +57,10 @@ void MieAyam_Init()
 	}
 }
 
-void MieAyam_CreateMainWindow(const mieayam_window_attributes * const window_attributes, int32_t count)
+void MieAyam_CreateWindow(const mieayam_window_attributes * const window_attributes, int32_t count, MIEAYAM_WINDOW_SHOW show)
 {
 	_mieayam_window_count = count;
+	_mieayam_window_track_window_count = count;
 
 	for (int32_t i = 0; i < count; i++)
 	{
@@ -64,7 +72,8 @@ void MieAyam_CreateMainWindow(const mieayam_window_attributes * const window_att
 			return;
 		}
 
-		_mieayam_window_handle.handles[i] = CreateWindow(
+		_mieayam_window_handle.window[i].index = i;
+		_mieayam_window_handle.window[i].handle = CreateWindow(
 			_mieayam_window_class.lpszClassName,
 			window_attributes[i].title,
 			WS_SYSMENU | WS_CAPTION | WS_MINIMIZEBOX,
@@ -77,14 +86,49 @@ void MieAyam_CreateMainWindow(const mieayam_window_attributes * const window_att
 			GetModuleHandle(0),
 			0);
 
-		if (!_mieayam_window_handle.handles[i])
+		if (!_mieayam_window_handle.window[i].handle)
 		{
 			// TODO : Error log
 			return;
 		}
 
-		ShowWindow(_mieayam_window_handle.handles[i], SW_SHOW);
+		// Show all the windows
+		if (show == MIEAYAM_WINDOW_SHOW_ALL)
+		{
+			if (!ShowWindow(_mieayam_window_handle.window[i].handle, SW_SHOW))
+			{
+				// TODO : Error log
+			}
+		}
+
 	}
+
+	// Show only one window (always index 0)
+	if (show == MIEAYAM_WINDOW_SHOW_ONE)
+	{
+		if (!ShowWindow(_mieayam_window_handle.window[0].handle, SW_SHOW))
+		{
+			// TODO : Error log
+		}
+	}
+}
+
+void MieAyam_ShowWindow(int32_t window_index)
+{
+	if (!ShowWindow(_mieayam_window_handle.window[window_index].handle, SW_SHOW))
+	{
+		// TODO : Error log
+	}
+}
+
+int32_t MieAyam_GetCurrentActiveWindowId()
+{
+	return _mieayam_current_active_id;
+}
+
+int32_t MieAyam_GetCurrentActiveWindowIndex()
+{
+	return _mieayam_current_active_index;
 }
 
 uint8_t MieAyam_RunProccess()
@@ -111,17 +155,27 @@ uint8_t MieAyam_RunProccess()
 
 uint8_t MieAyam_MouseLeftIsPressed()
 {
-	return _mieayam_mouse.state == MIEAYAM_MOUSE_CLICKED;
+	return _mieayam_window_handle.mouses[_mieayam_current_active_index].state == MIEAYAM_MOUSE_CLICKED;
 }
 
 uint8_t MieAyam_MouseLeftIsReleased()
 {
-	if (_mieayam_mouse.state == MIEAYAM_MOUSE_CLICKED)
+	if (_mieayam_window_handle.mouses[_mieayam_current_active_index].state == MIEAYAM_MOUSE_RELEASED)
 	{
 		return true;
 	}
 
 	return false;
+}
+
+int32_t MieAyam_GetMouseX()
+{
+	return _mieayam_window_handle.mouses[_mieayam_current_active_index].x;
+}
+
+int32_t Mieayam_GetMouseY()
+{
+	return _mieayam_window_handle.mouses[_mieayam_current_active_index].y;
 }
 
 LRESULT CALLBACK _mieayam_Win32HandleProcess(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -133,16 +187,12 @@ LRESULT CALLBACK _mieayam_Win32HandleProcess(HWND hwnd, UINT uMsg, WPARAM wParam
 	{
 		case WM_ACTIVATE:
 		{
-			if (LOWORD(wParam) == WA_INACTIVE)
+			HWND activeWindow = GetForegroundWindow();
+			for (int32_t i = 0; i < (int32_t)_mieayam_window_count; i++)
 			{
-				// Get current active window
-				for (int32_t i = 0; i < (int32_t)_mieayam_window_count; i++)
+				if (activeWindow == _mieayam_window_handle.window[i].handle)
 				{
-					HWND activeWindow = (HWND)lParam;
-					if (activeWindow == _mieayam_window_handle.handles[i])
-					{
-						_mieayam_current_active = i;
-					}
+					_mieayam_current_active_index = i;
 				}
 			}
 		}
@@ -150,14 +200,14 @@ LRESULT CALLBACK _mieayam_Win32HandleProcess(HWND hwnd, UINT uMsg, WPARAM wParam
 
 		case WM_CLOSE:
 		{
-			_mieayam_window_count--;
-			DestroyWindow(_mieayam_window_handle.handles[_mieayam_current_active]);
+			_mieayam_window_track_window_count--;
+			DestroyWindow(_mieayam_window_handle.window[_mieayam_current_active_index].handle);
 		}
 		break;
 
 		case WM_DESTROY:
 		{
-			if (_mieayam_window_count == 0)
+			if (_mieayam_window_track_window_count == 0)
 			{
 				PostQuitMessage(0);
 			}
@@ -175,9 +225,9 @@ LRESULT CALLBACK _mieayam_Win32HandleProcess(HWND hwnd, UINT uMsg, WPARAM wParam
 		case WM_LBUTTONDOWN:
 		{
 			const POINTS point = MAKEPOINTS(lParam);
-			_mieayam_window_handle.mouses[_mieayam_current_active].state = MIEAYAM_MOUSE_CLICKED;
-			_mieayam_window_handle.mouses[_mieayam_current_active].x = (int32_t)point.x;
-			_mieayam_window_handle.mouses[_mieayam_current_active].y = (int32_t)point.y;
+			_mieayam_window_handle.mouses[_mieayam_current_active_index].state = MIEAYAM_MOUSE_CLICKED;
+			_mieayam_window_handle.mouses[_mieayam_current_active_index].x = (int32_t)point.x;
+			_mieayam_window_handle.mouses[_mieayam_current_active_index].y = (int32_t)point.y;
 
 		}
 		break;
@@ -185,9 +235,9 @@ LRESULT CALLBACK _mieayam_Win32HandleProcess(HWND hwnd, UINT uMsg, WPARAM wParam
 		case WM_LBUTTONUP:
 		{
 			const POINTS point = MAKEPOINTS(lParam);
-			_mieayam_window_handle.mouses[_mieayam_current_active].state = MIEAYAM_MOUSE_RELEASED;
-			_mieayam_window_handle.mouses[_mieayam_current_active].x = (int32_t)point.x;
-			_mieayam_window_handle.mouses[_mieayam_current_active].y = (int32_t)point.y;
+			_mieayam_window_handle.mouses[_mieayam_current_active_index].state = MIEAYAM_MOUSE_RELEASED;
+			_mieayam_window_handle.mouses[_mieayam_current_active_index].x = (int32_t)point.x;
+			_mieayam_window_handle.mouses[_mieayam_current_active_index].y = (int32_t)point.y;
 		}
 		break;
 	}
