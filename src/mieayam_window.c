@@ -19,7 +19,6 @@ typedef struct
 
 typedef struct
 {
-	int32_t index;
 	HWND handle;
 } mieayam_window_internal;
 
@@ -32,7 +31,6 @@ typedef struct
 
 static uint32_t							_mieayam_window_count;				// Store how many windows are
 static uint32_t							_mieayam_window_track_window_count; // Track current the count of the windows
-static int32_t							_mieayam_current_active_id;			// Store current active window id
 static int32_t							_mieayam_current_active_index;		// Store current active window index from an array
 static WNDCLASSEX						_mieayam_window_class;				// Store window main class
 static mieayam_window_handles			_mieayam_window_handle;				// Store all the window handles				
@@ -72,7 +70,6 @@ void MieAyam_CreateWindow(const mieayam_window_attributes * const window_attribu
 			return;
 		}
 
-		_mieayam_window_handle.window[i].index = i;
 		_mieayam_window_handle.window[i].handle = CreateWindow(
 			_mieayam_window_class.lpszClassName,
 			window_attributes[i].title,
@@ -119,11 +116,6 @@ void MieAyam_ShowWindow(int32_t window_index)
 	{
 		// TODO : Error log
 	}
-}
-
-int32_t MieAyam_GetCurrentActiveWindowId()
-{
-	return _mieayam_current_active_id;
 }
 
 int32_t MieAyam_GetCurrentActiveWindowIndex()
