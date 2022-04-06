@@ -3,6 +3,7 @@
 #include "mieayam_window.h"
 #include "mieayam_config.h"
 
+// Mouse stuff
 typedef enum
 {
 	MIEAYAM_MOUSE_NONE,
@@ -17,14 +18,29 @@ typedef struct
 	mieayam_mouse_state state;
 } mieayam_mouse_internal;
 
-typedef struct
+
+// Keyboard stuff
+typedef enum
 {
-	HWND handle;
-} mieayam_window_internal;
+	MIEAYAM_KEYBOARD_NONE,
+	MIEAYAM_KEYBOARD_PRESSED,
+	MIEAYAM_KEYBOARD_RELEASED
+} mieayam_keyboard_state;
 
 typedef struct
 {
+	mieayam_keyboard_state state;
+	uint8_t autoRepeat;
+	uint8_t keyCode[256];
+} mieayam_keyboard_internal;
+
+
+// Main window stuff
+typedef HWND mieayam_window_internal;
+typedef struct
+{
 	mieayam_window_internal			window[MAX_WINDOW_COUNT];
+	mieayam_keyboard_internal		keyboard[MAX_WINDOW_COUNT];
 	mieayam_mouse_internal			mouses[MAX_WINDOW_COUNT];
 } mieayam_window_handles;
 
@@ -55,22 +71,25 @@ void MieAyam_Init()
 	}
 }
 
-void MieAyam_CreateWindow(const mieayam_window_attributes * const window_attributes, int32_t count, MIEAYAM_WINDOW_SHOW show)
+void MieAyam_CreateWindow(const mieayam_window_attributes * const window_attributes, int32_t count)
 {
 	_mieayam_window_count = count;
 	_mieayam_window_track_window_count = count;
 
 	for (int32_t i = 0; i < count; i++)
 	{
-		RECT rc = { 0, 0, (LONG)window_attributes[i].width, (LONG)window_attributes[i].height };
+		int32_t windowWidth = window_attributes[i].width;
+		int32_t windowHeight = window_attributes[i].height;
+		const char * title = window_attributes[i].title;
 
+		RECT rc = { 0, 0, (LONG)windowWidth, (LONG)windowHeight };
 		if (!AdjustWindowRect(&rc, WS_SYSMENU | WS_CAPTION | WS_MINIMIZEBOX, false))
 		{
 			// TODO : Error log
 			return;
 		}
 
-		_mieayam_window_handle.window[i].handle = CreateWindow(
+		_mieayam_window_handle.window[i] = CreateWindow(
 			_mieayam_window_class.lpszClassName,
 			window_attributes[i].title,
 			WS_SYSMENU | WS_CAPTION | WS_MINIMIZEBOX,
@@ -83,36 +102,17 @@ void MieAyam_CreateWindow(const mieayam_window_attributes * const window_attribu
 			GetModuleHandle(0),
 			0);
 
-		if (!_mieayam_window_handle.window[i].handle)
+		if (!_mieayam_window_handle.window[i])
 		{
 			// TODO : Error log
 			return;
-		}
-
-		// Show all the windows
-		if (show == MIEAYAM_WINDOW_SHOW_ALL)
-		{
-			if (!ShowWindow(_mieayam_window_handle.window[i].handle, SW_SHOW))
-			{
-				// TODO : Error log
-			}
-		}
-
-	}
-
-	// Show only one window (always index 0)
-	if (show == MIEAYAM_WINDOW_SHOW_ONE)
-	{
-		if (!ShowWindow(_mieayam_window_handle.window[0].handle, SW_SHOW))
-		{
-			// TODO : Error log
 		}
 	}
 }
 
 void MieAyam_ShowWindow(int32_t window_index)
 {
-	if (!ShowWindow(_mieayam_window_handle.window[window_index].handle, SW_SHOW))
+	if (!ShowWindow(_mieayam_window_handle.window[window_index], SW_SHOW))
 	{
 		// TODO : Error log
 	}
@@ -121,6 +121,11 @@ void MieAyam_ShowWindow(int32_t window_index)
 int32_t MieAyam_GetCurrentActiveWindowIndex()
 {
 	return _mieayam_current_active_index;
+}
+
+int32_t MieAyam_GetWindowCount()
+{
+	return _mieayam_window_count;
 }
 
 uint8_t MieAyam_RunProccess()
@@ -135,14 +140,38 @@ uint8_t MieAyam_RunProccess()
 		{
 			return false;
 		}
-
-		if (GetAsyncKeyState(VK_ESCAPE))
-		{
-			return false;
-		}
 	}
 
 	return true;
+}
+
+uint8_t MieAyan_ShowWindow(int32_t window_index)
+{
+	if (ShowWindow(_mieayam_window_handle.window[window_index], SW_SHOW))
+	{
+		return true;
+	}
+	return false;
+}
+
+HWND MieAyam_GetWindowHandle(int32_t index)
+{
+	return _mieayam_window_handle.window[index];
+}
+
+uint8_t MieAyam_KeyboardIsPressed(uint32_t key_code)
+{
+	return _mieayam_window_handle.keyboard[_mieayam_current_active_index].keyCode[key_code];
+}
+
+uint8_t MieAyam_KeyboardIsReleased(uint32_t key_code)
+{
+	if (_mieayam_window_handle.keyboard[_mieayam_current_active_index].state == MIEAYAM_KEYBOARD_RELEASED)
+	{
+		return _mieayam_window_handle.keyboard[_mieayam_current_active_index].keyCode[key_code] == false; // this is return true
+	}
+
+	return false;
 }
 
 uint8_t MieAyam_MouseLeftIsPressed()
@@ -182,7 +211,7 @@ LRESULT CALLBACK _mieayam_Win32HandleProcess(HWND hwnd, UINT uMsg, WPARAM wParam
 			HWND activeWindow = GetForegroundWindow();
 			for (int32_t i = 0; i < (int32_t)_mieayam_window_count; i++)
 			{
-				if (activeWindow == _mieayam_window_handle.window[i].handle)
+				if (activeWindow == _mieayam_window_handle.window[i])
 				{
 					_mieayam_current_active_index = i;
 				}
@@ -193,7 +222,7 @@ LRESULT CALLBACK _mieayam_Win32HandleProcess(HWND hwnd, UINT uMsg, WPARAM wParam
 		case WM_CLOSE:
 		{
 			_mieayam_window_track_window_count--;
-			DestroyWindow(_mieayam_window_handle.window[_mieayam_current_active_index].handle);
+			DestroyWindow(_mieayam_window_handle.window[_mieayam_current_active_index]);
 		}
 		break;
 
@@ -210,6 +239,35 @@ LRESULT CALLBACK _mieayam_Win32HandleProcess(HWND hwnd, UINT uMsg, WPARAM wParam
 		{
 			hdc = BeginPaint(hwnd, &ps);
 			EndPaint(hwnd, &ps);
+		}
+		break;
+
+		case WM_KILLFOCUS:
+		{
+			// Kill focus
+		}
+		break;
+
+		// Keyboard input
+		case WM_SYSKEYDOWN:
+		case WM_KEYDOWN:
+		{
+			uint32_t keyCode = (uint32_t)wParam;
+			uint32_t keyIsDown = (uint32_t)(lParam & (1 << 30));
+			if (keyIsDown == 0u) // No auto repeat
+			{
+				_mieayam_window_handle.keyboard[_mieayam_current_active_index].state = MIEAYAM_KEYBOARD_PRESSED;
+				_mieayam_window_handle.keyboard[_mieayam_current_active_index].keyCode[keyCode] = true;
+			}
+		}
+		break;
+
+		case WM_SYSKEYUP:
+		case WM_KEYUP:
+		{
+			uint32_t keyCode = (uint32_t)wParam;
+			_mieayam_window_handle.keyboard[_mieayam_current_active_index].state = MIEAYAM_KEYBOARD_RELEASED;
+			_mieayam_window_handle.keyboard[_mieayam_current_active_index].keyCode[keyCode] = false;
 		}
 		break;
 

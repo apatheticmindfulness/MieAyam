@@ -3,12 +3,6 @@
 #include <stdbool.h>
 #include "mieayam_win.h"
 
-typedef enum
-{
-	MIEAYAM_WINDOW_SHOW_ONE,
-	MIEAYAM_WINDOW_SHOW_ALL
-} MIEAYAM_WINDOW_SHOW;
-
 typedef struct
 {
 	int32_t width;
@@ -16,18 +10,17 @@ typedef struct
 	const char *title;
 } mieayam_window_attributes;
 
-typedef struct
-{
-	int32_t x;
-	int32_t y;
-	int32_t z;
-} mieayam_point;
-
 void		MieAyam_Init();
-void		MieAyam_CreateWindow(const mieayam_window_attributes * const window_attributes, int32_t count, MIEAYAM_WINDOW_SHOW show);
+void		MieAyam_CreateWindow(const mieayam_window_attributes * const window_attributes, int32_t count);
 void		MieAyam_ShowWindow(int32_t window_index);
 int32_t		MieAyam_GetCurrentActiveWindowIndex();
+int32_t		MieAyam_GetWindowCount();
 uint8_t		MieAyam_RunProccess();
+uint8_t		MieAyan_ShowWindow(int32_t window_index);
+HWND		MieAyam_GetWindowHandle(int32_t index);
+
+uint8_t		MieAyam_KeyboardIsPressed(uint32_t key_code);
+uint8_t		MieAyam_KeyboardIsReleased(uint32_t key_code);
 
 uint8_t		MieAyam_MouseLeftIsPressed();
 uint8_t		MieAyam_MouseLeftIsReleased();
