@@ -1,137 +1,88 @@
 #include "mieayam_basic_graphics.h"
 #include "mieayam_config.h"
-
-#pragma comment(lib, "dxgi.lib")
-#pragma comment(lib, "dxguid.lib")
-#pragma comment(lib, "d3d11.lib")
+#include "mieayam_window.h"
+#include <math.h>
+#include <assert.h>
 
 typedef struct
 {
-	ID3D11Device			* pD3DDevice;
-	ID3D11DeviceContext		* pD3DContext;
-	ID3D11RenderTargetView  * pD3DRenderTarget;
-	IDXGISwapChain			* pDXGISwapChain;
-} mieayam_directx_internal;
+	HWND			window;
+	BITMAPINFO		bitmapInfo;
+	mieayam_color	* memory;
+} mieayam_basic_graphics_internal;
 
-static mieayam_directx_internal			_mieayam_graphics;		// Store DirectX graphics state
 
-uint8_t MieAyam_InitGraphics(const mieayam_window_attributes window_attributes, int32_t index)
+int32_t								_mieayam_graphics_count;				// Store how many graphics are
+int32_t								_mieayam_graphics_current_index;		// Keep track the current active window for the graphics
+mieayam_basic_graphics_internal		_mieayam_graphics[MAX_WINDOW_COUNT];	// Store all the graphics handles	
+
+
+uint8_t MieAyam_InitBasicGraphics(const mieayam_basic_graphics_attributes * const graphics, int32_t count)
 {
-	HRESULT result;
-	int32_t windowWidth = window_attributes.width;
-	int32_t windowHeight = window_attributes.height;
-	HWND windowHandle = MieAyam_GetWindowHandle(index);
+	_mieayam_graphics_count = count;
 
-	// Flags
-	uint32_t flags = 0;
-
-#if _DEBUG
-	flags |= D3D11_CREATE_DEVICE_DEBUG;
-#endif
-
-	// Feature level
-	D3D_FEATURE_LEVEL featureLevels[] = 
+	for (int32_t i = 0; i < _mieayam_graphics_count; i++)
 	{
-		D3D_FEATURE_LEVEL_11_0,
-		D3D_FEATURE_LEVEL_10_1,
-		D3D_FEATURE_LEVEL_10_0,
-		D3D_FEATURE_LEVEL_9_3
-	};
+		int32_t canvasWidth = graphics[i].width;
+		int32_t canvasHeight = graphics[i].height;
+		int32_t totalCanvasSize = canvasWidth * canvasHeight * sizeof(mieayam_color);
 
-	// Swap Chain Description
-	DXGI_SWAP_CHAIN_DESC swapChainDesc = 
-	{
-		.BufferDesc.Width = windowWidth,
-		.BufferDesc.Height = windowHeight,
-		.BufferDesc.RefreshRate.Numerator = 60,
-		.BufferDesc.RefreshRate.Denominator = 1,
-		.BufferDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM,
-		.SampleDesc.Count = 1,
-		.SampleDesc.Quality = 0,
-		.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT,
-		.BufferCount = 1,
-		.OutputWindow = windowHandle,
-		.Windowed = true
-	};
+		// Configure BitmapInfo
+		_mieayam_graphics[i].bitmapInfo.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+		_mieayam_graphics[i].bitmapInfo.bmiHeader.biWidth = graphics[i].width;
+		_mieayam_graphics[i].bitmapInfo.bmiHeader.biHeight = -graphics[i].height;
+		_mieayam_graphics[i].bitmapInfo.bmiHeader.biPlanes = 1;
+		_mieayam_graphics[i].bitmapInfo.bmiHeader.biBitCount = graphics[i].bitCount;
+		_mieayam_graphics[i].bitmapInfo.bmiHeader.biCompression = BI_RGB;
 
-	// Create device and swap chain
-	result = D3D11CreateDeviceAndSwapChain(
-		0,
-		D3D_DRIVER_TYPE_HARDWARE,
-		0,
-		flags,
-		featureLevels,
-		ARRAYSIZE(featureLevels),
-		D3D11_SDK_VERSION,
-		&swapChainDesc,
-		&_mieayam_graphics.pDXGISwapChain,
-		&_mieayam_graphics.pD3DDevice,
-		0,
-		&_mieayam_graphics.pD3DContext);
+		// Get window index
+		_mieayam_graphics[i].window = MieAyam_GetWindowHandle(graphics[i].windowIndex);
 
-	// Get backbuffer
-	ID3D11Texture2D * backBuffer = 0;
-	if (_mieayam_graphics.pDXGISwapChain)
-	{
-		result = IDXGISwapChain_GetBuffer(_mieayam_graphics.pDXGISwapChain, 0, &IID_ID3D11Texture2D, &backBuffer);
-		if (FAILED(result))
+		// Allocate some memory for renderer
+		_mieayam_graphics[i].memory = (mieayam_color*)VirtualAlloc(0, totalCanvasSize, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+		if (!_mieayam_graphics[i].memory)
 		{
-			ID3D11Texture2D_Release(backBuffer);
-			MieAyam_CleanGraphics(); // Clean DirectX objects
+			// Log : Failed to allocate memory
 			return false;
 		}
-	}
-
-	// Create render target
-	if (_mieayam_graphics.pD3DDevice)
-	{
-		result = ID3D11Device_CreateRenderTargetView(_mieayam_graphics.pD3DDevice, (ID3D11Resource*)backBuffer, 0, &_mieayam_graphics.pD3DRenderTarget);
-		if (FAILED(result))
-		{
-			ID3D11Texture2D_Release(backBuffer);
-			MieAyam_CleanGraphics(); // Clean DirectX objects
-			return false;
-		}
-	}
-
-	// Release backbuffer
-	if (backBuffer)
-	{
-		ID3D11Texture2D_Release(backBuffer);
-	}
-
-	// Set Render target
-	if (_mieayam_graphics.pD3DContext)
-	{
-		ID3D11DeviceContext_OMSetRenderTargets(_mieayam_graphics.pD3DContext, 1, &_mieayam_graphics.pD3DRenderTarget, 0);
-
-		// Set viewport
-		D3D11_VIEWPORT viewport =
-		{
-			.TopLeftY = 0.0f,
-			.TopLeftX = 0.0f,
-			.Width = (float)windowWidth,
-			.Height = (float)windowHeight,
-			.MaxDepth = 1.0f,
-			.MinDepth = 1.0f
-		};
-		ID3D11DeviceContext_RSSetViewports(_mieayam_graphics.pD3DContext, 1, &viewport);
 	}
 
 	return true;
 }
 
-void MieAyam_RenderEnd()
+void MieAyam_RenderStart(int32_t graphics_index)
 {
-	float clearColor[] = { 0.0f, 0.0f, 0.0f, 1.0f };
-	ID3D11DeviceContext_ClearRenderTargetView(_mieayam_graphics.pD3DContext, _mieayam_graphics.pD3DRenderTarget, clearColor);
-	IDXGISwapChain_Present(_mieayam_graphics.pDXGISwapChain, 1, 0);
+	// Get the current active graphics state
+	_mieayam_graphics_current_index = graphics_index;
+
+	// From that active graphics state apply the memset function (for clearing the screen)
+	int32_t totalSize = abs(_mieayam_graphics[_mieayam_graphics_current_index].bitmapInfo.bmiHeader.biWidth * _mieayam_graphics[_mieayam_graphics_current_index].bitmapInfo.bmiHeader.biHeight * sizeof(mieayam_color));
+	memset(_mieayam_graphics[_mieayam_graphics_current_index].memory, 0, totalSize);
 }
 
-void MieAyam_CleanGraphics()
+void MieAyam_SetPixel(int32_t x, int32_t y, mieayam_color color)
 {
-	ID3D11RenderTargetView_Release(_mieayam_graphics.pD3DRenderTarget);
-	ID3D11DeviceContext_Release(_mieayam_graphics.pD3DContext);
-	ID3D11Device_Release(_mieayam_graphics.pD3DDevice);
-	IDXGISwapChain_Release(_mieayam_graphics.pDXGISwapChain);
+	int32_t xPos = x;
+	int32_t yPos = y;
+	mieayam_color pixelColor = color;
+
+	int32_t canvasWidth = _mieayam_graphics[_mieayam_graphics_current_index].bitmapInfo.bmiHeader.biWidth;
+	int32_t canvasHeight = abs(_mieayam_graphics[_mieayam_graphics_current_index].bitmapInfo.bmiHeader.biHeight);
+
+	assert(x >= 0);
+	assert(x < canvasWidth);
+	assert(y >= 0);
+	assert(y < canvasHeight);
+	_mieayam_graphics[_mieayam_graphics_current_index].memory[canvasWidth * yPos + xPos] = pixelColor;
+}
+
+void MieAyam_RenderEnd()
+{
+	// Get the width and the height from the active graphics state
+	int32_t width = _mieayam_graphics[_mieayam_graphics_current_index].bitmapInfo.bmiHeader.biWidth;
+	int32_t height = abs(_mieayam_graphics[_mieayam_graphics_current_index].bitmapInfo.bmiHeader.biHeight);
+
+	HDC dc = GetDC(_mieayam_graphics[_mieayam_graphics_current_index].window);
+	StretchDIBits(dc, 0, 0, width, height, 0, 0, width, height, _mieayam_graphics[_mieayam_graphics_current_index].memory, &_mieayam_graphics[_mieayam_graphics_current_index].bitmapInfo, DIB_RGB_COLORS, SRCCOPY);
+	ReleaseDC(_mieayam_graphics[_mieayam_graphics_current_index].window, dc);
 }

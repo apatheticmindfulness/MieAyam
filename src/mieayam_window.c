@@ -71,7 +71,7 @@ void MieAyam_Init()
 	}
 }
 
-void MieAyam_CreateWindow(const mieayam_window_attributes * const window_attributes, int32_t count)
+uint8_t MieAyam_CreateWindow(const mieayam_window_attributes * const window_attributes, int32_t count)
 {
 	_mieayam_window_count = count;
 	_mieayam_window_track_window_count = count;
@@ -86,7 +86,7 @@ void MieAyam_CreateWindow(const mieayam_window_attributes * const window_attribu
 		if (!AdjustWindowRect(&rc, WS_SYSMENU | WS_CAPTION | WS_MINIMIZEBOX, false))
 		{
 			// TODO : Error log
-			return;
+			return false;
 		}
 
 		_mieayam_window_handle.window[i] = CreateWindow(
@@ -105,17 +105,11 @@ void MieAyam_CreateWindow(const mieayam_window_attributes * const window_attribu
 		if (!_mieayam_window_handle.window[i])
 		{
 			// TODO : Error log
-			return;
+			return false;
 		}
 	}
-}
 
-void MieAyam_ShowWindow(int32_t window_index)
-{
-	if (!ShowWindow(_mieayam_window_handle.window[window_index], SW_SHOW))
-	{
-		// TODO : Error log
-	}
+	return true;
 }
 
 int32_t MieAyam_GetCurrentActiveWindowIndex()
@@ -145,7 +139,7 @@ uint8_t MieAyam_RunProccess()
 	return true;
 }
 
-uint8_t MieAyan_ShowWindow(int32_t window_index)
+uint8_t MieAyam_ShowWindow(int32_t window_index)
 {
 	if (ShowWindow(_mieayam_window_handle.window[window_index], SW_SHOW))
 	{
@@ -194,7 +188,7 @@ int32_t MieAyam_GetMouseX()
 	return _mieayam_window_handle.mouses[_mieayam_current_active_index].x;
 }
 
-int32_t Mieayam_GetMouseY()
+int32_t MieAyam_GetMouseY()
 {
 	return _mieayam_window_handle.mouses[_mieayam_current_active_index].y;
 }
@@ -214,6 +208,7 @@ LRESULT CALLBACK _mieayam_Win32HandleProcess(HWND hwnd, UINT uMsg, WPARAM wParam
 				if (activeWindow == _mieayam_window_handle.window[i])
 				{
 					_mieayam_current_active_index = i;
+					//break;
 				}
 			}
 		}
@@ -288,6 +283,18 @@ LRESULT CALLBACK _mieayam_Win32HandleProcess(HWND hwnd, UINT uMsg, WPARAM wParam
 			_mieayam_window_handle.mouses[_mieayam_current_active_index].state = MIEAYAM_MOUSE_RELEASED;
 			_mieayam_window_handle.mouses[_mieayam_current_active_index].x = (int32_t)point.x;
 			_mieayam_window_handle.mouses[_mieayam_current_active_index].y = (int32_t)point.y;
+		}
+		break;
+
+		case WM_MOUSEMOVE:
+		{
+			if (wParam & MK_LBUTTON)
+			{
+				const POINTS point = MAKEPOINTS(lParam);
+				_mieayam_window_handle.mouses[_mieayam_current_active_index].state = MIEAYAM_MOUSE_CLICKED;
+				_mieayam_window_handle.mouses[_mieayam_current_active_index].x = (int32_t)point.x;
+				_mieayam_window_handle.mouses[_mieayam_current_active_index].y = (int32_t)point.y;
+			}
 		}
 		break;
 	}

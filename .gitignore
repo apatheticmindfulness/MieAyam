@@ -40,3 +40,9 @@ Main.cpp
 *.exe
 *.out
 *.app
+
+# Temporary files
+mieayam_graphics.c
+mieayam_graphics.h
+mieayam_graphics_helper.cpp
+mieayam_graphics_helper.h

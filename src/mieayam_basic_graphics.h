@@ -1,13 +1,23 @@
 #pragma once
-#include "mieayam_win.h"
-#include "mieayam_window.h"
+
+// mieayam_basic_graphics used GDI for it's backend
+// this utility only has one function for drawing which is MieAyam_SetPixel()
+
 #include <stdint.h>
 #include <stdbool.h>
+#include "mieayam_win.h"
+#include "mieayam_color.h"
 
-#define COBJMACROS
-#include <d3d11.h>
-#include <dxgi.h>
+typedef struct
+{
+	int32_t width;
+	int32_t height;
+	int32_t windowIndex;
+	int32_t bitCount;
+} mieayam_basic_graphics_attributes;
 
-uint8_t MieAyam_InitGraphics(const mieayam_window_attributes window_attributes, int32_t index);
-void	MieAyam_RenderEnd();
-void	MieAyam_CleanGraphics();
+
+uint8_t MieAyam_InitBasicGraphics(const mieayam_basic_graphics_attributes * const graphics, int32_t count);
+void MieAyam_RenderStart(int32_t graphics_index);
+void MieAyam_SetPixel(int32_t x, int32_t y, mieayam_color color);
+void MieAyam_RenderEnd();
