@@ -152,6 +152,8 @@ int main()
 }
 ```
 
+Contoh program bisa dilihat pada folder examples, [di sini](examples).
+
 ### Todo
 Rencana kedepan untuk pengembangan pustaka MieAyam.
 - Dukungan Hardware acceleration berbasis DirectX atau OpenGL.
