@@ -2,13 +2,13 @@
 Pustaka sederhana untuk keperluan pemrograman berbasis Windows dengan Win32 API.
 
 ## Daftar konten
-- [Gambaran]("#gambaran")
-- [Fitur]("#fitur---fitur")
-- [Cara Penggunaan]("#cara-penggunaan")
-	- [Pembuatan window]("#pembuatan-window-single-window")
-		- [Single window]("pembuatan-window-single-window")
-		- [Multiple windows]("pembuatan-window-multiple-windows")
-	- [Penggunaan grafis]("#penggunaan-grafis")
+- [Gambaran](#gambaran)
+- [Fitur](#fitur---fitur)
+- [Cara Penggunaan](#cara-penggunaan)
+	- [Pembuatan window](#pembuatan-window-single-window)
+		- [Single window](pembuatan-window-single-window)
+		- [Multiple windows](pembuatan-window-multiple-windows)
+	- [Penggunaan grafis](#penggunaan-grafis)
 - [Todo]("todo")
 
 ## Gambaran
