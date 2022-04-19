@@ -2,29 +2,25 @@
 Pustaka sederhana untuk keperluan pemrograman berbasis Windows dengan Win32 API.
 
 ## Daftar konten
-- [Gambaran]("gambaran")
-- [Fitur]("fitur)
-- [Cara Penggunaan]("how_to")
-	- [Pembuatan window]("how_to_single_window")
-		- [Single window]("how_to_single_window")
-		- [Multiple windows]("how_to_multiple_windows")
-	- [Penggunaan grafis]("how_to_graphics")
+- [Gambaran]("#gambaran")
+- [Fitur]("#fitur---fitur")
+- [Cara Penggunaan]("#cara-penggunaan")
+	- [Pembuatan window]("#pembuatan-window-single-window")
+		- [Single window]("pembuatan-window-single-window")
+		- [Multiple windows]("pembuatan-window-multiple-windows")
+	- [Penggunaan grafis]("#penggunaan-grafis")
 - [Todo]("todo")
 
-<a name="gambaran"></a>
 ## Gambaran
 Pustaka MieAyam bekerja dengan menggunakan Win32 API yang terdapat pada sistem operasi Windows, menjadikan pustaka tidak bergantung pada library / dependency eksternal lain (no external dependencies). Tujuan awal pengembangan pustaka ini adalah sebagai alat bantu untuk belajar pemrograman, namun juga tidak menutup kemungkinan bisa digunakan untuk keperluan lain (selain untuk pembelajaran).
 
-<a name="fitur"></a>
 ## Fitur - fitur
 Pustaka MieAyam masih dalam tahap awal pengembangan dan akan terus diimprove agar bisa memberikan hasil yang optimal serta efisien. Berikut beberapa fitur yang sudah terimplementasi pada pustaka ini.
 - Pembuatan Window (sudah termasuk dukungan untuk Keyboard dan Mouse).
 - Grafis (Software Rendering berbasis GDI).
 
-<a name="how_to"></a>
 ## Cara Penggunaan
 
-<a name="how_to_single_window"></a>
 #### Pembuatan Window (single window)
 ```cpp
 #include "mieayam_window.h"
@@ -56,7 +52,6 @@ int main()
 }
 ```
 
-<a name="how_to_multiple_windows"></a>
 #### Pembuatan Window (multiple windows)
 ```cpp
 #include "mieayam_window.h"
@@ -99,7 +94,6 @@ int main()
 }
 ```
 
-<a name="how_to_graphics"></a>
 #### Penggunaan Grafis
 ```cpp
 #include "mieayam_window.h"
@@ -158,7 +152,6 @@ int main()
 }
 ```
 
-<a name="todo"></a>
 ### Todo
 Rencana kedepan untuk pengembangan pustaka MieAyam.
 - Dukungan Hardware acceleration berbasis DirectX atau OpenGL.
