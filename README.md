@@ -12,7 +12,7 @@ Pustaka sederhana untuk keperluan pemrograman berbasis Windows dengan Win32 API.
 - [Todo]("todo")
 
 ## Gambaran
-Pustaka MieAyam bekerja dengan menggunakan Win32 API yang terdapat pada sistem operasi Windows, menjadikan pustaka tidak bergantung pada library / dependency eksternal lain (no external dependencies). Tujuan awal pengembangan pustaka ini adalah sebagai alat bantu untuk belajar pemrograman, namun juga tidak menutup kemungkinan bisa digunakan untuk keperluan lain (selain untuk pembelajaran).
+Pustaka MieAyam bekerja dengan menggunakan Win32 API yang terdapat pada sistem operasi Windows, menjadikan pustaka ini tidak bergantung pada library / dependency eksternal lain (no external dependencies). Tujuan awal pengembangan pustaka ini adalah sebagai alat bantu untuk belajar pemrograman, namun juga tidak menutup kemungkinan bisa digunakan untuk keperluan lain (selain untuk pembelajaran).
 
 ## Fitur - fitur
 Pustaka MieAyam masih dalam tahap awal pengembangan dan akan terus diimprove agar bisa memberikan hasil yang optimal serta efisien. Berikut beberapa fitur yang sudah terimplementasi pada pustaka ini.
