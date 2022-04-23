@@ -10,6 +10,10 @@ typedef struct
 	const char *title;
 } mieayam_window_attributes;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void		MieAyam_Init(void);
 uint8_t		MieAyam_CreateWindow(const mieayam_window_attributes * const window_attributes, int32_t count);
 int32_t		MieAyam_GetCurrentActiveWindowIndex(void);
@@ -25,3 +29,7 @@ uint8_t		MieAyam_MouseLeftIsPressed(void);
 uint8_t		MieAyam_MouseLeftIsReleased(void);
 int32_t		MieAyam_GetMouseX(void);
 int32_t		MieAyam_GetMouseY(void);
+
+#ifdef __cplusplus
+}
+#endif

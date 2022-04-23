@@ -18,9 +18,17 @@ typedef struct
 } mieayam_basic_graphics_attributes;
 
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 uint8_t MieAyam_InitBasicGraphics(const mieayam_basic_graphics_attributes * const graphics, int32_t count);
 void MieAyam_RenderStart(int32_t graphics_index);
 void MieAyam_SetPixel(int32_t x, int32_t y, mieayam_color color);
 void MieAyam_RenderEnd(void);
 
 void MieAyam_CleanBackground(mieayam_color color);
+
+#ifdef __cplusplus
+}
+#endif
