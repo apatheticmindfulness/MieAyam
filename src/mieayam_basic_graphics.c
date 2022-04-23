@@ -3,6 +3,7 @@
 #include "mieayam_window.h"
 #include <math.h>
 #include <assert.h>
+#include <malloc.h>
 
 typedef struct
 {
@@ -11,10 +12,15 @@ typedef struct
 	mieayam_color	* memory;
 } mieayam_basic_graphics_internal;
 
+// Variables
+static int32_t							_mieayam_graphics_count;				// Store how many graphics are
+static int32_t							_mieayam_graphics_current_index;		// Keep track the current active window for the graphics
+static mieayam_basic_graphics_internal	_mieayam_graphics[MAX_WINDOW_COUNT];	// Store all the graphics handles	
 
-int32_t								_mieayam_graphics_count;				// Store how many graphics are
-int32_t								_mieayam_graphics_current_index;		// Keep track the current active window for the graphics
-mieayam_basic_graphics_internal		_mieayam_graphics[MAX_WINDOW_COUNT];	// Store all the graphics handles	
+// Functions
+static int32_t							_MieAyam_GetCanvasHeightInternal();
+static int32_t							_MieAyam_GetTotalCanvasSizeInternal();
+static int32_t							_MieAyam_GetCanvasWidthInternal();
 
 
 uint8_t MieAyam_InitBasicGraphics(const mieayam_basic_graphics_attributes * const graphics, int32_t count)
@@ -66,23 +72,49 @@ void MieAyam_SetPixel(int32_t x, int32_t y, mieayam_color color)
 	int32_t yPos = y;
 	mieayam_color pixelColor = color;
 
-	int32_t canvasWidth = _mieayam_graphics[_mieayam_graphics_current_index].bitmapInfo.bmiHeader.biWidth;
-	int32_t canvasHeight = abs(_mieayam_graphics[_mieayam_graphics_current_index].bitmapInfo.bmiHeader.biHeight);
+	int32_t canvasWidth = _MieAyam_GetCanvasWidthInternal();
+	int32_t canvasHeight = _MieAyam_GetCanvasHeightInternal();
 
-	assert(x >= 0);
-	assert(x < canvasWidth);
-	assert(y >= 0);
-	assert(y < canvasHeight);
+	assert(xPos >= 0);
+	assert(xPos < canvasWidth);
+	assert(yPos >= 0);
+	assert(yPos < canvasHeight);
 	_mieayam_graphics[_mieayam_graphics_current_index].memory[canvasWidth * yPos + xPos] = pixelColor;
 }
 
-void MieAyam_RenderEnd()
+void MieAyam_RenderEnd(void)
 {
 	// Get the width and the height from the active graphics state
-	int32_t width = _mieayam_graphics[_mieayam_graphics_current_index].bitmapInfo.bmiHeader.biWidth;
-	int32_t height = abs(_mieayam_graphics[_mieayam_graphics_current_index].bitmapInfo.bmiHeader.biHeight);
+	int32_t width = _MieAyam_GetCanvasWidthInternal();
+	int32_t height = _MieAyam_GetCanvasHeightInternal();
 
 	HDC dc = GetDC(_mieayam_graphics[_mieayam_graphics_current_index].window);
 	StretchDIBits(dc, 0, 0, width, height, 0, 0, width, height, _mieayam_graphics[_mieayam_graphics_current_index].memory, &_mieayam_graphics[_mieayam_graphics_current_index].bitmapInfo, DIB_RGB_COLORS, SRCCOPY);
 	ReleaseDC(_mieayam_graphics[_mieayam_graphics_current_index].window, dc);
+}
+
+void MieAyam_CleanBackground(mieayam_color color)
+{
+	mieayam_color clearBackgroundColor = color;
+	int32_t totalCanvasSize = _MieAyam_GetTotalCanvasSizeInternal();
+
+	for (int32_t x = 0; x < totalCanvasSize; x++)
+	{
+		memcpy(_mieayam_graphics[_mieayam_graphics_current_index].memory + x, &clearBackgroundColor, sizeof(mieayam_color));
+	}
+}
+
+static int32_t _MieAyam_GetCanvasWidthInternal()
+{
+	return _mieayam_graphics[_mieayam_graphics_current_index].bitmapInfo.bmiHeader.biWidth;
+}
+
+static int32_t _MieAyam_GetCanvasHeightInternal()
+{
+	return abs(_mieayam_graphics[_mieayam_graphics_current_index].bitmapInfo.bmiHeader.biHeight);;
+}
+
+static int32_t _MieAyam_GetTotalCanvasSizeInternal()
+{
+	return _MieAyam_GetCanvasWidthInternal() * _MieAyam_GetCanvasHeightInternal();
 }

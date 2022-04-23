@@ -44,17 +44,17 @@ typedef struct
 	mieayam_mouse_internal			mouses[MAX_WINDOW_COUNT];
 } mieayam_window_handles;
 
-
+// Variables
 static uint32_t							_mieayam_window_count;				// Store how many windows are
 static uint32_t							_mieayam_window_track_window_count; // Track current the count of the windows
 static int32_t							_mieayam_current_active_index;		// Store current active window index from an array
 static WNDCLASSEX						_mieayam_window_class;				// Store window main class
 static mieayam_window_handles			_mieayam_window_handle;				// Store all the window handles				
 
-
+// Functions
 static LRESULT CALLBACK					_mieayam_Win32HandleProcess(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
-void MieAyam_Init()
+void MieAyam_Init(void)
 {
 	_mieayam_window_class.cbSize = sizeof(WNDCLASSEX);
 	_mieayam_window_class.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
@@ -112,17 +112,17 @@ uint8_t MieAyam_CreateWindow(const mieayam_window_attributes * const window_attr
 	return true;
 }
 
-int32_t MieAyam_GetCurrentActiveWindowIndex()
+int32_t MieAyam_GetCurrentActiveWindowIndex(void)
 {
 	return _mieayam_current_active_index;
 }
 
-int32_t MieAyam_GetWindowCount()
+int32_t MieAyam_GetWindowCount(void)
 {
 	return _mieayam_window_count;
 }
 
-uint8_t MieAyam_RunProccess()
+uint8_t MieAyam_RunProccess(void)
 {
 	MSG msg = { 0 };
 	while (PeekMessage(&msg, 0, 0, 0, PM_REMOVE))
@@ -168,12 +168,12 @@ uint8_t MieAyam_KeyboardIsReleased(uint32_t key_code)
 	return false;
 }
 
-uint8_t MieAyam_MouseLeftIsPressed()
+uint8_t MieAyam_MouseLeftIsPressed(void)
 {
 	return _mieayam_window_handle.mouses[_mieayam_current_active_index].state == MIEAYAM_MOUSE_CLICKED;
 }
 
-uint8_t MieAyam_MouseLeftIsReleased()
+uint8_t MieAyam_MouseLeftIsReleased(void)
 {
 	if (_mieayam_window_handle.mouses[_mieayam_current_active_index].state == MIEAYAM_MOUSE_RELEASED)
 	{
@@ -183,12 +183,12 @@ uint8_t MieAyam_MouseLeftIsReleased()
 	return false;
 }
 
-int32_t MieAyam_GetMouseX()
+int32_t MieAyam_GetMouseX(void)
 {
 	return _mieayam_window_handle.mouses[_mieayam_current_active_index].x;
 }
 
-int32_t MieAyam_GetMouseY()
+int32_t MieAyam_GetMouseY(void)
 {
 	return _mieayam_window_handle.mouses[_mieayam_current_active_index].y;
 }
