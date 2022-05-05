@@ -1,5 +1,3 @@
-#include <stdlib.h>
-#include <stdio.h>
 #include "mieayam_window.h"
 #include "mieayam_config.h"
 
