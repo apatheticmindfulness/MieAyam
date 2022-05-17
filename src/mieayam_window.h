@@ -7,6 +7,7 @@ typedef struct
 {
 	int32_t width;
 	int32_t height;
+	uint8_t resizable;
 	const char *title;
 } mieayam_window_attributes;
 

@@ -61,6 +61,7 @@ void MieAyam_Init(void)
 	_mieayam_window_class.hCursor = LoadCursor(0, IDC_ARROW);
 	_mieayam_window_class.lpszMenuName = 0;
 	_mieayam_window_class.lpszClassName = "MieAyam_MainWindow";
+	_mieayam_window_class.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH); //(HBRUSH)(COLOR_BACKGROUND + 1);
 
 	if (!RegisterClassEx(&_mieayam_window_class))
 	{
@@ -80,8 +81,16 @@ uint8_t MieAyam_CreateWindow(const mieayam_window_attributes * const window_attr
 		int32_t windowHeight = window_attributes[i].height;
 		const char * title = window_attributes[i].title;
 
+		DWORD windowFlags = WS_SYSMENU | WS_CAPTION | WS_MINIMIZEBOX;
+
+		// If window was set to resizable
+		if (window_attributes[i].resizable)
+		{
+			windowFlags |= WS_THICKFRAME | WS_MAXIMIZEBOX;
+		}
+
 		RECT rc = { 0, 0, (LONG)windowWidth, (LONG)windowHeight };
-		if (!AdjustWindowRect(&rc, WS_SYSMENU | WS_CAPTION | WS_MINIMIZEBOX, false))
+		if (!AdjustWindowRect(&rc, windowFlags, false))
 		{
 			// TODO : Error log
 			return false;
@@ -90,7 +99,7 @@ uint8_t MieAyam_CreateWindow(const mieayam_window_attributes * const window_attr
 		_mieayam_window_handle.window[i] = CreateWindow(
 			_mieayam_window_class.lpszClassName,
 			window_attributes[i].title,
-			WS_SYSMENU | WS_CAPTION | WS_MINIMIZEBOX,
+			windowFlags,
 			CW_USEDEFAULT,
 			CW_USEDEFAULT,
 			rc.right - rc.left,

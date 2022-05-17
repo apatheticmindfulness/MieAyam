@@ -15,6 +15,7 @@ typedef struct
 	int32_t height;
 	int32_t windowIndex;
 	int32_t bitCount;
+	uint8_t fitWindow;
 } mieayam_basic_graphics_attributes;
 
 

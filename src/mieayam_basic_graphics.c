@@ -22,7 +22,6 @@ static int32_t							_MieAyam_GetCanvasHeightInternal();
 static int32_t							_MieAyam_GetTotalCanvasSizeInternal();
 static int32_t							_MieAyam_GetCanvasWidthInternal();
 
-
 uint8_t MieAyam_InitBasicGraphics(const mieayam_basic_graphics_attributes * const graphics, int32_t count)
 {
 	_mieayam_graphics_count = count;
@@ -85,11 +84,77 @@ void MieAyam_SetPixel(int32_t x, int32_t y, mieayam_color color)
 void MieAyam_RenderEnd(void)
 {
 	// Get the width and the height from the active graphics state
-	int32_t width = _MieAyam_GetCanvasWidthInternal();
-	int32_t height = _MieAyam_GetCanvasHeightInternal();
+	int32_t canvasWidth = _MieAyam_GetCanvasWidthInternal();
+	int32_t canvasHeight = _MieAyam_GetCanvasHeightInternal();
+	float canvasAspectRatio = (float)canvasWidth / (float)canvasHeight;
+
+	// Get the width and the height of the active window
+	RECT windowRect = { 0 };
+	GetClientRect(_mieayam_graphics[_mieayam_graphics_current_index].window, &windowRect);
+	int32_t windowWidth = windowRect.right - windowRect.left;
+	int32_t windowHeight = windowRect.bottom - windowRect.top;
+	float windowAspectRatio = (float)windowWidth / (float)windowHeight;
+
+	float centeredCanvasX = 0.0f;
+	float centeredCanvasY = 0.0f;
+	float targetCanvasWidth = (float)windowHeight * canvasAspectRatio;
+	float targetCanvasHeight = (float)windowWidth / canvasAspectRatio;
+
+	if (targetCanvasWidth > (float)windowWidth)
+	{
+		targetCanvasWidth = (float)windowWidth;
+		centeredCanvasY = ((float)windowHeight / 2.0f) - ((float)targetCanvasHeight / 2.0f);
+	}
+	else
+	{
+		targetCanvasHeight = (float)windowHeight;
+		centeredCanvasX = ((float)windowWidth / 2.0f) - ((float)targetCanvasWidth / 2.0f);
+	}
+
+
+	/*
+	if (targetCanvasWidth > (float)windowWidth) // This I don't understand, how can be that possible Ky?
+	{
+		targetCanvasWidth = (float)windowWidth;
+		centeredCanvasY = ((float)windowHeight / 2.0f) - ((float)targetCanvasHeight / 2.0f); // centered y-axis
+	}
+	else
+	{
+		targetCanvasHeight = (float)windowHeight;
+		centeredCanvasX = ((float)windowWidth / 2.0f) - ((float)targetCanvasWidth / 2.0f); // centered x-axis
+	}
+	*/
+
+	#pragma region This looks works | maintaining the aspect ratio
+	// The problem is I don't quite understand the code, I understand the math
+	// but the logic, I don't really understand. How is the width or the height match with the aspect ratio?
+#if 0
+	if (canvasAspectRatio > 0 && windowWidth > 0 && windowHeight > 0)
+	{
+		targetCanvasWidth = (float)windowHeight * canvasAspectRatio; // This is already optimal size 16 units
+		targetCanvasHeight = (float)windowWidth / canvasAspectRatio; // This is already optimal size too 9 units
+
+		if (targetCanvasWidth > (float)windowWidth) // This I don't understand, how can be that possible Ky?
+		{
+			targetCanvasWidth = (float)windowWidth;
+			centeredCanvasY = ((float)windowHeight / 2.0f) - ((float)targetCanvasHeight / 2.0f); // centered y-axis
+		}
+		else
+		{
+			targetCanvasHeight = (float)windowHeight;
+			centeredCanvasX = ((float)windowWidth / 2.0f) - ((float)targetCanvasWidth / 2.0f); // centered x-axis
+		}
+	}
+#endif
+	#pragma endregion
 
 	HDC dc = GetDC(_mieayam_graphics[_mieayam_graphics_current_index].window);
-	StretchDIBits(dc, 0, 0, width, height, 0, 0, width, height, _mieayam_graphics[_mieayam_graphics_current_index].memory, &_mieayam_graphics[_mieayam_graphics_current_index].bitmapInfo, DIB_RGB_COLORS, SRCCOPY);
+	StretchDIBits(dc, 
+		(int32_t)centeredCanvasX, (int32_t)centeredCanvasY, (int32_t)targetCanvasWidth, (int32_t)targetCanvasHeight,
+		0, 0, canvasWidth, canvasHeight, 
+		_mieayam_graphics[_mieayam_graphics_current_index].memory, 
+		&_mieayam_graphics[_mieayam_graphics_current_index].bitmapInfo, 
+		DIB_RGB_COLORS, SRCCOPY);
 	ReleaseDC(_mieayam_graphics[_mieayam_graphics_current_index].window, dc);
 }
 
