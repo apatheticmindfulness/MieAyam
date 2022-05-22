@@ -77,8 +77,8 @@ uint8_t MieAyam_CreateWindow(const mieayam_window_attributes * const window_attr
 
 	for (int32_t i = 0; i < count; i++)
 	{
-		int32_t windowWidth = window_attributes[i].width;
-		int32_t windowHeight = window_attributes[i].height;
+		const int32_t windowWidth = window_attributes[i].width;
+		const int32_t windowHeight = window_attributes[i].height;
 		const char * title = window_attributes[i].title;
 
 		DWORD windowFlags = WS_SYSMENU | WS_CAPTION | WS_MINIMIZEBOX;
@@ -254,8 +254,8 @@ LRESULT CALLBACK _mieayam_Win32HandleProcess(HWND hwnd, UINT uMsg, WPARAM wParam
 		case WM_SYSKEYDOWN:
 		case WM_KEYDOWN:
 		{
-			uint32_t keyCode = (uint32_t)wParam;
-			uint32_t keyIsDown = (uint32_t)(lParam & (1 << 30));
+			const uint32_t keyCode = (uint32_t)wParam;
+			const uint32_t keyIsDown = (uint32_t)(lParam & (1 << 30));
 			if (keyIsDown == 0u) // No auto repeat
 			{
 				_mieayam_window_handle.keyboard[_mieayam_current_active_index].state = MIEAYAM_KEYBOARD_PRESSED;
@@ -267,7 +267,7 @@ LRESULT CALLBACK _mieayam_Win32HandleProcess(HWND hwnd, UINT uMsg, WPARAM wParam
 		case WM_SYSKEYUP:
 		case WM_KEYUP:
 		{
-			uint32_t keyCode = (uint32_t)wParam;
+			const uint32_t keyCode = (uint32_t)wParam;
 			_mieayam_window_handle.keyboard[_mieayam_current_active_index].state = MIEAYAM_KEYBOARD_RELEASED;
 			_mieayam_window_handle.keyboard[_mieayam_current_active_index].keyCode[keyCode] = false;
 		}

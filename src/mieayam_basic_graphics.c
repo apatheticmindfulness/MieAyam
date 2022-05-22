@@ -29,9 +29,9 @@ uint8_t MieAyam_InitBasicGraphics(const mieayam_basic_graphics_attributes * cons
 
 	for (int32_t i = 0; i < _mieayam_graphics_count; i++)
 	{
-		int32_t canvasWidth = graphics[i].width;
-		int32_t canvasHeight = graphics[i].height;
-		int32_t totalCanvasSize = canvasWidth * canvasHeight * sizeof(mieayam_color);
+		const int32_t canvasWidth = graphics[i].width;
+		const int32_t canvasHeight = graphics[i].height;
+		const int32_t totalCanvasSize = canvasWidth * canvasHeight * sizeof(mieayam_color);
 
 		// Configure BitmapInfo
 		_mieayam_graphics[i].bitmapInfo.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
@@ -42,7 +42,7 @@ uint8_t MieAyam_InitBasicGraphics(const mieayam_basic_graphics_attributes * cons
 		_mieayam_graphics[i].bitmapInfo.bmiHeader.biCompression = BI_RGB;
 
 		// Tell the canvas to keep it's aspect ratio
-		uint8_t keepAspectRatio = graphics[i].keepAspectRatio;
+		const uint8_t keepAspectRatio = graphics[i].keepAspectRatio;
 		if (keepAspectRatio)
 		{
 			_mieayam_graphics[i].keepAspectRatio = keepAspectRatio;
@@ -69,18 +69,18 @@ void MieAyam_RenderStart(int32_t graphics_index)
 	_mieayam_graphics_current_index = graphics_index;
 
 	// From that active graphics state apply the memset function (for clearing the screen)
-	int32_t totalSize = abs(_mieayam_graphics[_mieayam_graphics_current_index].bitmapInfo.bmiHeader.biWidth * _mieayam_graphics[_mieayam_graphics_current_index].bitmapInfo.bmiHeader.biHeight * sizeof(mieayam_color));
+	const int32_t totalSize = abs(_mieayam_graphics[_mieayam_graphics_current_index].bitmapInfo.bmiHeader.biWidth * _mieayam_graphics[_mieayam_graphics_current_index].bitmapInfo.bmiHeader.biHeight * sizeof(mieayam_color));
 	memset(_mieayam_graphics[_mieayam_graphics_current_index].memory, 0, totalSize);
 }
 
 void MieAyam_SetPixel(int32_t x, int32_t y, mieayam_color color)
 {
-	int32_t xPos = x;
-	int32_t yPos = y;
-	mieayam_color pixelColor = color;
+	const int32_t xPos = x;
+	const int32_t yPos = y;
+	const mieayam_color pixelColor = color;
 
-	int32_t canvasWidth = _MieAyam_GetCanvasWidthInternal();
-	int32_t canvasHeight = _MieAyam_GetCanvasHeightInternal();
+	const int32_t canvasWidth = _MieAyam_GetCanvasWidthInternal();
+	const int32_t canvasHeight = _MieAyam_GetCanvasHeightInternal();
 
 	assert(xPos >= 0);
 	assert(xPos < canvasWidth);
@@ -92,16 +92,16 @@ void MieAyam_SetPixel(int32_t x, int32_t y, mieayam_color color)
 void MieAyam_RenderEnd(void)
 {
 	// Get the width and the height from the active graphics state
-	int32_t canvasWidth = _MieAyam_GetCanvasWidthInternal();
-	int32_t canvasHeight = _MieAyam_GetCanvasHeightInternal();
-	float canvasAspectRatio = (float)canvasWidth / (float)canvasHeight;
+	const int32_t canvasWidth = _MieAyam_GetCanvasWidthInternal();
+	const int32_t canvasHeight = _MieAyam_GetCanvasHeightInternal();
+	const float canvasAspectRatio = (float)canvasWidth / (float)canvasHeight;
 
 	// Get the width and the height of the active window
 	RECT windowRect = { 0 };
 	GetClientRect(_mieayam_graphics[_mieayam_graphics_current_index].window, &windowRect);
-	int32_t windowWidth = windowRect.right - windowRect.left;
-	int32_t windowHeight = windowRect.bottom - windowRect.top;
-	float windowAspectRatio = (float)windowWidth / (float)windowHeight;
+	const int32_t windowWidth = windowRect.right - windowRect.left;
+	const int32_t windowHeight = windowRect.bottom - windowRect.top;
+	const float windowAspectRatio = (float)windowWidth / (float)windowHeight;
 
 	float centeredCanvasX = 0.0f;
 	float centeredCanvasY = 0.0f;
@@ -145,8 +145,8 @@ void MieAyam_RenderEnd(void)
 
 void MieAyam_CleanBackground(mieayam_color color)
 {
-	mieayam_color clearBackgroundColor = color;
-	int32_t totalCanvasSize = _MieAyam_GetTotalCanvasSizeInternal();
+	const mieayam_color clearBackgroundColor = color;
+	const int32_t totalCanvasSize = _MieAyam_GetTotalCanvasSizeInternal();
 
 	for (int32_t x = 0; x < totalCanvasSize; x++)
 	{
