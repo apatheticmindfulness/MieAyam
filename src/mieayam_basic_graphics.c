@@ -161,7 +161,7 @@ static int32_t _MieAyam_GetCanvasWidthInternal()
 
 static int32_t _MieAyam_GetCanvasHeightInternal()
 {
-	return abs(_mieayam_graphics[_mieayam_graphics_current_index].bitmapInfo.bmiHeader.biHeight);;
+	return abs(_mieayam_graphics[_mieayam_graphics_current_index].bitmapInfo.bmiHeader.biHeight);
 }
 
 static int32_t _MieAyam_GetTotalCanvasSizeInternal()
