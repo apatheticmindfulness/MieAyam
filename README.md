@@ -1,24 +1,6 @@
 # MieAyam
 Pustaka sederhana untuk keperluan pemrograman berbasis Windows dengan Win32 API.
 
-## Daftar konten
-- [Gambaran](#gambaran)
-- [Fitur](#fitur---fitur)
-- [Cara Penggunaan](#cara-penggunaan)
-	- [Pembuatan window](#pembuatan-window-single-window)
-		- [Single window](#pembuatan-window-single-window)
-		- [Multiple windows](#pembuatan-window-multiple-windows)
-	- [Penggunaan grafis](#penggunaan-grafis)
-- [Todo]("todo")
-
-## Gambaran
-Pustaka MieAyam bekerja dengan menggunakan Win32 API yang terdapat pada sistem operasi Windows, menjadikan pustaka ini tidak bergantung pada library / dependency eksternal lain (no external dependencies). Tujuan awal pengembangan pustaka ini adalah sebagai alat bantu untuk belajar pemrograman, namun juga tidak menutup kemungkinan bisa digunakan untuk keperluan lain (selain untuk pembelajaran).
-
-## Fitur - fitur
-Pustaka MieAyam masih dalam tahap awal pengembangan dan akan terus diimprove agar bisa memberikan hasil yang optimal serta efisien. Berikut beberapa fitur yang sudah terimplementasi pada pustaka ini.
-- Pembuatan Window (sudah termasuk dukungan untuk Keyboard dan Mouse).
-- Grafis (Software Rendering berbasis GDI).
-
 ## Cara Penggunaan
 
 #### Pembuatan Window (single window)
@@ -153,10 +135,3 @@ int main()
 ```
 
 Contoh program bisa dilihat pada folder examples, [di sini](examples).
-
-### Todo
-Rencana kedepan untuk pengembangan pustaka MieAyam.
-- Dukungan Hardware acceleration berbasis DirectX atau OpenGL.
-- Dukungan untuk proses perhitungan (math library).
-- Audio.
-- Etc.
