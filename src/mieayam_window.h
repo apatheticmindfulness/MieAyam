@@ -21,7 +21,7 @@ int32_t		MieAyam_GetCurrentActiveWindowIndex(void);
 int32_t		MieAyam_GetWindowCount(void);
 uint8_t		MieAyam_RunProccess(void);
 uint8_t		MieAyam_ShowWindow(int32_t window_index);
-HWND		MieAyam_GetWindowHandle(int32_t index);
+HWND		MieAyam_GetWindowHandle(int32_t window_index);
 
 uint8_t		MieAyam_KeyboardIsPressed(uint32_t key_code);
 uint8_t		MieAyam_KeyboardIsReleased(uint32_t key_code);
