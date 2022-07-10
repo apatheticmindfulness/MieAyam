@@ -8,6 +8,7 @@
 #include "mieayam_win.h"
 #include "mieayam_window.h"
 #include "mieayam_color.h"
+#include "mieayam_math.h"
 
 typedef struct
 {
@@ -28,7 +29,8 @@ void MieAyam_RenderStart(int32_t graphics_index);
 void MieAyam_SetPixel(int32_t x, int32_t y, mieayam_color color);
 void MieAyam_RenderEnd(void);
 
-void MieAyam_CleanBackground(mieayam_color color);
+void MieAyam_CleanBackground(const mieayam_color color);
+mieayam_rect4f MieAyam_GetActiveGraphicsSize(void);
 
 #ifdef __cplusplus
 }

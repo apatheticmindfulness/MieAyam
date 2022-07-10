@@ -16,12 +16,9 @@ typedef struct
 // Variables
 static int32_t							_mieayam_graphics_count;				// Store how many graphics are
 static int32_t							_mieayam_graphics_current_index;		// Keep track the current active window for the graphics
-static mieayam_basic_graphics_internal	_mieayam_graphics[MAX_WINDOW_COUNT];	// Store all the graphics handles	
+static mieayam_basic_graphics_internal	_mieayam_graphics[MAX_WINDOW_COUNT];	// Store all the graphics handles
 
-// Functions
-static int32_t							_MieAyam_GetCanvasHeightInternal();
-static int32_t							_MieAyam_GetTotalCanvasSizeInternal();
-static int32_t							_MieAyam_GetCanvasWidthInternal();
+static mieayam_rect4f					_mieayam_graphics_rect;					// Store the current graphics/canvas size and position
 
 uint8_t MieAyam_InitBasicGraphics(const mieayam_basic_graphics_attributes * const graphics, int32_t count)
 {
@@ -63,6 +60,10 @@ uint8_t MieAyam_InitBasicGraphics(const mieayam_basic_graphics_attributes * cons
 	return true;
 }
 
+#define GET_CANVAS_WIDTH_INTERNAL _mieayam_graphics[_mieayam_graphics_current_index].bitmapInfo.bmiHeader.biWidth
+#define GET_CANVAS_HEIGHT_INTERNAL abs(_mieayam_graphics[_mieayam_graphics_current_index].bitmapInfo.bmiHeader.biHeight)
+#define GET_CANVAS_RESOLUTION_INTERNAL GET_CANVAS_WIDTH_INTERNAL * GET_CANVAS_HEIGHT_INTERNAL
+
 void MieAyam_RenderStart(int32_t graphics_index)
 {
 	// Get the current active graphics state
@@ -79,8 +80,8 @@ void MieAyam_SetPixel(int32_t x, int32_t y, mieayam_color color)
 	const int32_t yPos = y;
 	const mieayam_color pixelColor = color;
 
-	const int32_t canvasWidth = _MieAyam_GetCanvasWidthInternal();
-	const int32_t canvasHeight = _MieAyam_GetCanvasHeightInternal();
+	const int32_t canvasWidth = GET_CANVAS_WIDTH_INTERNAL;
+	const int32_t canvasHeight = GET_CANVAS_HEIGHT_INTERNAL;
 
 	assert(xPos >= 0);
 	assert(xPos < canvasWidth);
@@ -89,11 +90,16 @@ void MieAyam_SetPixel(int32_t x, int32_t y, mieayam_color color)
 	_mieayam_graphics[_mieayam_graphics_current_index].memory[canvasWidth * yPos + xPos] = pixelColor;
 }
 
+#define centeredCanvasX _mieayam_graphics_rect.left
+#define centeredCanvasY _mieayam_graphics_rect.top
+#define targetCanvasWidth _mieayam_graphics_rect.right
+#define targetCanvasHeight _mieayam_graphics_rect.bottom
+
 void MieAyam_RenderEnd(void)
 {
 	// Get the width and the height from the active graphics state
-	const int32_t canvasWidth = _MieAyam_GetCanvasWidthInternal();
-	const int32_t canvasHeight = _MieAyam_GetCanvasHeightInternal();
+	const int32_t canvasWidth = GET_CANVAS_WIDTH_INTERNAL;
+	const int32_t canvasHeight = GET_CANVAS_HEIGHT_INTERNAL;
 	const float canvasAspectRatio = (float)canvasWidth / (float)canvasHeight;
 
 	// Get the width and the height of the active window
@@ -103,10 +109,11 @@ void MieAyam_RenderEnd(void)
 	const int32_t windowHeight = windowRect.bottom - windowRect.top;
 	const float windowAspectRatio = (float)windowWidth / (float)windowHeight;
 
-	float centeredCanvasX = 0.0f;
-	float centeredCanvasY = 0.0f;
-	float targetCanvasWidth = 0.0f;
-	float targetCanvasHeight = 0.0f;
+	centeredCanvasX = 0.0f;
+	centeredCanvasY = 0.0f;
+	targetCanvasWidth = 0.0f;
+	targetCanvasHeight = 0.0f;
+
 	if (windowWidth > 0 && windowHeight > 0 && canvasWidth > 0 && canvasHeight > 0)
 	{
 		// Keep the aspect ratio
@@ -143,10 +150,10 @@ void MieAyam_RenderEnd(void)
 	ReleaseDC(_mieayam_graphics[_mieayam_graphics_current_index].window, dc);
 }
 
-void MieAyam_CleanBackground(mieayam_color color)
+void MieAyam_CleanBackground(const mieayam_color color)
 {
 	const mieayam_color clearBackgroundColor = color;
-	const int32_t totalCanvasSize = _MieAyam_GetTotalCanvasSizeInternal();
+	const int32_t totalCanvasSize = GET_CANVAS_RESOLUTION_INTERNAL;
 
 	for (int32_t x = 0; x < totalCanvasSize; x++)
 	{
@@ -154,17 +161,7 @@ void MieAyam_CleanBackground(mieayam_color color)
 	}
 }
 
-static int32_t _MieAyam_GetCanvasWidthInternal()
+mieayam_rect4f MieAyam_GetActiveGraphicsSize(void)
 {
-	return _mieayam_graphics[_mieayam_graphics_current_index].bitmapInfo.bmiHeader.biWidth;
-}
-
-static int32_t _MieAyam_GetCanvasHeightInternal()
-{
-	return abs(_mieayam_graphics[_mieayam_graphics_current_index].bitmapInfo.bmiHeader.biHeight);
-}
-
-static int32_t _MieAyam_GetTotalCanvasSizeInternal()
-{
-	return _MieAyam_GetCanvasWidthInternal() * _MieAyam_GetCanvasHeightInternal();
+	return _mieayam_graphics_rect;
 }

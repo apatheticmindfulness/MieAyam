@@ -311,7 +311,7 @@ LRESULT CALLBACK _mieayam_Win32HandleProcess(HWND hwnd, UINT uMsg, WPARAM wParam
 
 void _mieayam_Win32WindowClearState()
 {
-	for (int i = 0; i < _mieayam_window_count; i++)
+	for (size_t i = 0; i < (size_t)_mieayam_window_count; i++)
 	{
 		_mieayam_window_handle[i].keyboard.state = MIEAYAM_KEYBOARD_NONE;
 		memset(_mieayam_window_handle[i].keyboard.keyCode, 0, 256);
